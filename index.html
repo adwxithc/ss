@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cyber Resilience Self-Assessment Tool</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1, h2 { color: #2c3e50; }
+    label { display: block; margin-top: 10px; font-weight: bold; }
+    select { margin-top: 5px; width: 100px; }
+    .question-block { margin-bottom: 20px; }
+    #result {
+      margin-top: 30px;
+      padding: 20px;
+      font-size: 1.2em;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+    }
+    .passive { background-color: #ffdddd; border-color: #d9534f; }
+    .reactive, .aware { background-color: #fff3cd; border-color: #f0ad4e; }
+    .strategic { background-color: #d4edda; border-color: #28a745; }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Cyber Resilience Self-Assessment Tool</h1>
+
+  <p>This self-assessment uses two types of Likert scales: <strong>Frequency</strong> and <strong>Agreement</strong>.</p>
+
+  <h2>👉 Frequency Scale:</h2>
+  <ul>
+    <li>0 = Never</li>
+    <li>1 = Rarely</li>
+    <li>2 = Occasionally</li>
+    <li>3 = Sometimes</li>
+    <li>4 = Often</li>
+    <li>5 = Always</li>
+  </ul>
+
+  <h2>👉 Agreement Scale:</h2>
+  <ul>
+    <li>0 = Strongly Disagree</li>
+    <li>1 = Disagree</li>
+    <li>2 = Somewhat Disagree</li>
+    <li>3 = Somewhat Agree</li>
+    <li>4 = Agree</li>
+    <li>5 = Strongly Agree</li>
+  </ul>
+
+  <form id="assessmentForm">
+    <h2>Questions</h2>
+    <div id="questionsContainer"></div>
+    <button type="button" onclick="calculatePersona()">Calculate My Persona</button>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    const questions = [
+      { text: "I understand the types of cyber threats that could disrupt my team’s administrative functions (e.g., system outages, phishing attacks, access loss).", type: "Agreement" },
+      { text: "I take steps to prepare for digital disruptions (e.g., saving contact info offline, using shared drives).", type: "Frequency" },
+      { text: "I regularly review or update where our key data is stored (e.g., OneDrive folders, shared logs).", type: "Frequency" },
+      { text: "I feel confident identifying basic red flags in suspicious emails or system behaviour.", type: "Agreement" },
+      { text: "I follow secure practices when managing files, permissions, or workflows shared with others.", type: "Frequency" },
+      { text: "If a core system (e.g., DMIS, ITS, SharePoint) went offline, I could continue parts of my work using offline or backup methods.", type: "Agreement" },
+      { text: "I maintain awareness of where critical documents are stored and who has access.", type: "Frequency" },
+      { text: "I am clear on which tasks I could continue and which would require IT assistance in a disruption.", type: "Agreement" },
+      { text: "I know how to escalate and report a suspected cyber incident quickly.", type: "Agreement" },
+      { text: "When a digital issue arises (e.g., locked file, login problem), I act swiftly and through the correct channel.", type: "Frequency" },
+      { text: "I have responded to a past disruption by adjusting how I or my team work.", type: "Agreement" },
+      { text: "I take part in team debriefs or check-ins after digital issues to improve our future response.", type: "Frequency" },
+      { text: "I have improved how I manage data or workflows based on lessons from disruptions or IT feedback.", type: "Agreement" },
+      { text: "I share advice or good practices with colleagues on digital security or continuity.", type: "Frequency" },
+      { text: "I feel confident guiding a new staff member on how to stay resilient if systems fail.", type: "Agreement" },
+      { text: "I contribute to improving our department’s preparedness (e.g., updating shared folders, clarifying escalation paths).", type: "Frequency" }
+    ];
+
+    function generateQuestions() {
+      const container = document.getElementById("questionsContainer");
+      questions.forEach((q, i) => {
+        const div = document.createElement("div");
+        div.className = "question-block";
+        div.innerHTML = `
+          <label for="q${i}">Q${i + 1} (${q.type}): ${q.text}</label>
+          <select id="q${i}" name="q${i}" required>
+            <option value="" disabled selected>Select score</option>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function calculatePersona() {
+      let readinessSum = 0, responseSum = 0;
+      let readinessCount = 0, responseCount = 0;
+
+      for (let i = 0; i < questions.length; i++) {
+        const val = parseInt(document.getElementById(`q${i}`).value);
+        if (isNaN(val)) {
+          alert("Please answer all questions before submitting.");
+          return;
+        }
+        if (i < 8) {
+          readinessSum += val;
+          readinessCount++;
+        } else {
+          responseSum += val;
+          responseCount++;
+        }
+      }
+
+      const readiness = readinessSum / readinessCount;
+      const response = responseSum / responseCount;
+
+      let persona = "", emoji = "", className = "";
+      if (readiness < 2.5 && response < 2.5) {
+        persona = "Passive";
+        emoji = "🟠";
+        className = "passive";
+      } else if (readiness > 2.5 && response > 2.5) {
+        persona = "Strategic";
+        emoji = "🟢";
+        className = "strategic";
+      } else if (readiness > 2.5 && response < 2.5) {
+        persona = "Aware";
+        emoji = "🔵";
+        className = "aware";
+      } else if (readiness < 2.5 && response > 2.5) {
+        persona = "Reactive";
+        emoji = "🟣";
+        className = "reactive";
+      }
+
+      const resultDiv = document.getElementById("result");
+      resultDiv.className = className;
+      resultDiv.innerHTML = `
+        <h2>Result</h2>
+        <p><strong>Readiness Score:</strong> ${readiness.toFixed(2)}</p>
+        <p><strong>Response Score:</strong> ${response.toFixed(2)}</p>
+        <p><strong>Your Persona Type:</strong> ${emoji} ${persona}</p>
+      `;
+    }
+
+    generateQuestions();
+  </script>
+
+</body>
+</html>
